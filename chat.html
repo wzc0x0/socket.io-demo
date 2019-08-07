@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        ul {
+            width: 90%;
+            height: 400px;
+            border: 1px solid #000;
+            margin: 0 auto;
+            overflow-y: auto;
+        }
+        
+        ul>li {
+            list-style: none;
+        }
+        
+        #chat form {
+            padding-top: 10px;
+            text-align: center;
+        }
+        
+        #chat input[type="text"] {
+            width: 200px;
+            height: 28px;
+            border: 1px solid #ccc;
+        }
+        
+        #chat input[type="button"] {
+            background-color: #ccc;
+            width: 80px;
+            height: 28px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat">
+        <ul id="chatList"></ul>
+        <form>
+            <input type="text" name="chatContent" id="chatContent" />
+            <input type="button" id="sendChatContent" value="发送" />
+        </form>
+    </div>
+    <script src="./node_modules/socket.io-client/dist/socket.io.js"></script>
+    <script src="./node_modules/jquery/dist/jquery.js"></script>
+    <script>
+        let socket = io.connect(location.protocol + "//" + ":3000");
+        let username = navigator.userAgent;
+        // 点击“发送”，向服务器发送聊天信息
+        $("#sendChatContent").click(function(ev) {
+            var chatContent = $("#chatContent")
+                .val()
+                .trim();
+            if (!chatContent) {
+                return;
+            }
+            if (socket) {
+                // 向服务器 chat 事件，发送信息
+                socket.emit("chat-client", {
+                    username: username,
+                    chatContent: chatContent
+                });
+            }
+            $("#chatContent").val("");
+        });
+        // 监听服务器发送来的 chat 事件
+        socket.on("chat-server", function(chatinfo) {
+            $("#chatList").append(
+                '<li><span class="chatusername">' +
+                chatinfo.username +
+                '</span>：<span class="chatcontent">' +
+                chatinfo.chatContent +
+                "</span></li>"
+            );
+            $("#chatList").scrollTop(10000);
+        });
+    </script>
+</body>
+
+</html>
